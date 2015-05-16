@@ -10,6 +10,8 @@ CLICK_COL = -3
 COMP_START_COL = 26
 COMP_END_COL = 50
 
+# srch_id, date_time, site_id, visitor_hist_starrating, visitor_hist_adr_usd, prop_id
+TO_BE_REMOVED = (0, 1, 2, 4, 5, 7)
 
 def rm_cols(lines, *cols):
     for line in lines:
@@ -44,9 +46,9 @@ if 'position' in head:
     del new_head[POSITION_COL]
     del new_head[CLICK_COL]
     new_head[BOOK_COL] = 'click_score'
-    new_rows = compact_clickbooking(compact_comp(rm_cols(infile, POSITION_COL)))
+    new_rows = rm_cols(compact_clickbooking(compact_comp(rm_cols(infile, POSITION_COL))), *TO_BE_REMOVED)
 else:
-    new_rows = compact_comp(infile)
+    new_rows = rm_cols(compact_comp(infile), *TO_BE_REMOVED)
 
 new_head[COMP_START_COL:COMP_END_COL] = ['comp_rank']
 outfile.writerow(new_head)
