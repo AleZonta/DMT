@@ -18,17 +18,11 @@ def rm_col(num, lines):
 
 def compact_comp(lines):
     for line in lines:
-        rank = 0
-        comps = 8
+        smaller = 0
         for i in xrange(8):
-            if line[COMP_START_COL + i*3] == 'NULL' or line[COMP_START_COL + i*3 + 1] in ('NULL', '-1'):
-                comps -= 1
-            else:
-                rank += int(line[COMP_START_COL + i*3])
-        if comps:
-            line[COMP_START_COL:COMP_END_COL] = ['%5.3f' % (float(rank)/comps)]
-        else:
-            line[COMP_START_COL:COMP_END_COL] = ['NULL']
+            if line[COMP_START_COL + i*3] != 'NULL' and line[COMP_START_COL + i*3 + 1] == '1':
+                smaller += 1
+        line[COMP_START_COL:COMP_END_COL] = [str(smaller)]
         yield line
 
 def compact_clickbooking(lines):
