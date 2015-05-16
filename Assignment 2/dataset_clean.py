@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
-# Copyright (c) 2015 Andrei Tatar. All rights reserved.
 
 import sys
 import csv
