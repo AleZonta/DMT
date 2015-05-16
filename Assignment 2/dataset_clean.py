@@ -15,7 +15,7 @@ TO_BE_REMOVED = (0, 1, 2, 4, 5, 7)
 
 def rm_cols(lines, *cols):
     for line in lines:
-        yield [el for el, index in enumerate(line) if index not in cols]
+        yield [el for index, el in enumerate(line) if index not in cols]
 
 def compact_comp(lines):
     for line in lines:
@@ -51,6 +51,7 @@ else:
     new_rows = rm_cols(compact_comp(infile), *TO_BE_REMOVED)
 
 new_head[COMP_START_COL:COMP_END_COL] = ['comp_rank']
+new_head = [el for index, el in enumerate(new_head) if index not in TO_BE_REMOVED]
 outfile.writerow(new_head)
 outfile.writerows(new_rows)
 
