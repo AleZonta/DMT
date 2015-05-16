@@ -11,10 +11,9 @@ COMP_START_COL = 26
 COMP_END_COL = 50
 
 
-def rm_col(num, lines):
+def rm_cols(lines, *cols):
     for line in lines:
-        del line[num]
-        yield line
+        yield [el for el, index in enumerate(line) if index not in cols]
 
 def compact_comp(lines):
     for line in lines:
@@ -45,7 +44,7 @@ if 'position' in head:
     del new_head[POSITION_COL]
     del new_head[CLICK_COL]
     new_head[BOOK_COL] = 'click_score'
-    new_rows = compact_clickbooking(compact_comp(rm_col(POSITION_COL, infile)))
+    new_rows = compact_clickbooking(compact_comp(rm_cols(infile, POSITION_COL)))
 else:
     new_rows = compact_comp(infile)
 
