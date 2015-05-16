@@ -5,6 +5,12 @@
 import sys
 import csv
 
+POSITION_COL = 14
+BOOK_COL = -1
+CLICK_COL = -3
+COMP_START_COL = 26
+COMP_END_COL = 50
+
 
 def rm_col(num, lines):
     for line in lines:
@@ -16,21 +22,21 @@ def compact_comp(lines):
         rank = 0
         comps = 8
         for i in xrange(8):
-            if line[26 + i*3] == 'NULL' or line[26 + i*3 + 1] in ('NULL', '-1'):
+            if line[COMP_START_COL + i*3] == 'NULL' or line[COMP_START_COL + i*3 + 1] in ('NULL', '-1'):
                 comps -= 1
             else:
-                rank += int(line[27 + i*3])
+                rank += int(line[COMP_START_COL + i*3])
         if comps:
-            line[26:50] = ['%5.3f' % (float(rank)/comps)]
+            line[COMP_START_COL:COMP_END_COL] = ['%5.3f' % (float(rank)/comps)]
         else:
-            line[26:50] = ['NULL']
+            line[COMP_START_COL:COMP_END_COL] = ['NULL']
         yield line
 
 def compact_clickbooking(lines):
     for line in lines:
-        clickscore = int(line[-3]) + 5 * int(line[-1])
-        del line[-3]
-        line[-1] = str(clickscore)
+        clickscore = int(line[CLICK_COL]) + 5 * int(line[BOOK_COL])
+        del line[CLICK_COL]
+        line[BOOK_COL] = str(clickscore)
         yield line
 
 infile = csv.reader(open(sys.argv[1]))
@@ -43,14 +49,14 @@ head = infile.next()
 new_head = head[:]
 
 if 'position' in head:
-    del new_head[14]
-    del new_head[-3]
-    new_head[-1] = 'click_score'
-    new_rows = compact_clickbooking(compact_comp(rm_col(14, infile)))
+    del new_head[POSITION_COL]
+    del new_head[CLICK_COL]
+    new_head[BOOK_COL] = 'click_score'
+    new_rows = compact_clickbooking(compact_comp(rm_col(POSITION_COL, infile)))
 else:
     new_rows = compact_comp(infile)
 
-new_head[26:50] = ['comp_rank']
+new_head[COMP_START_COL:COMP_END_COL] = ['comp_rank']
 outfile.writerow(new_head)
 outfile.writerows(new_rows)
 
