@@ -41,14 +41,14 @@ def compact_comp(line):
 def compact_clickbooking(line):
     is_head = line['click_bool'] == 'click_bool'
     if not is_head:
-        clickscore = int(line['click_bool']) + int(line['booking_bool'])
+        clickscore = chr(ord('a') + int(line['click_bool']) + int(line['booking_bool']))
     else:
         clickscore = 'score'
     del line['click_bool']
     del line['booking_bool']
     del line['position']
     del line['gross_bookings_usd']
-    line['score'] = str(clickscore)
+    line['score'] = clickscore
     return line
 
 def transform_srch_children_count(line):
@@ -63,8 +63,9 @@ try:
 except IndexError:
     outfile = csv.writer(open('compressed.csv', 'w'))
 
+#import ipdb; ipdb.set_trace()
 head = infile.next()
-rows = map(lambda x: transform_row(head, x), infile)
+rows = (transform_row(head, x) for x in infile)
 
 filters = [compact_comp, transform_srch_children_count, rm_these_cols(TO_BE_REMOVED)]
 if 'position' in head:
@@ -75,11 +76,6 @@ def apply_filters(row):
         row = fltr(row)
     return row
 
-#import ipdb; ipdb.set_trace()
-new_rows = []
 new_head = apply_filters(transform_row(head, head)).values()
-for row in rows:
-    new_rows.append(apply_filters(row).values())
-
 outfile.writerow(new_head)
-outfile.writerows(new_rows)
+outfile.writerows(apply_filters(row).values() for row in rows)
