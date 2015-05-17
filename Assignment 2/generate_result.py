@@ -18,7 +18,14 @@ def combine_results(tests, confidences, clickcol, bookcol):
             search_results = []
             current_search = test[SEARCH_ID_COL]
         confs = confidences.next()
-        search_results.append((test[PROP_ID_COL], confs[clickcol], confs[bookcol]))
+        try:
+            # In case the classifier gets confused and outputs a missing value... happened to me
+            search_results.append((test[PROP_ID_COL], float(confs[clickcol]), float(confs[bookcol])))
+        except ValueError:
+            search_results.append((test[PROP_ID_COL], 0.1, 0.02))
+    search_results.sort(key=lambda result:result[1] + 6*result[2], reverse=True)
+    for result in search_results:
+        yield (current_search, result[0])
 
 
 if len(sys.argv) < 3:
