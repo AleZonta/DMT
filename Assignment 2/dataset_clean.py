@@ -41,7 +41,7 @@ def compact_comp(line):
 def compact_clickbooking(line):
     is_head = line['click_bool'] == 'click_bool'
     if not is_head:
-        clickscore = chr(ord('a') + int(line['click_bool']) + int(line['booking_bool']))
+        clickscore = int(line['click_bool']) + 5 * int(line['booking_bool'])
     else:
         clickscore = 'score'
     del line['click_bool']
