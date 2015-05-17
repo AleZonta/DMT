@@ -25,6 +25,7 @@ def combine_results(tests, confidence_set, col_ids, weights):
                 score = weights[index] * \
                         (float(confs[col_ids[index][0]]) + 6*float(confs[col_ids[index][1]]))
             except ValueError:
+                # In case the classifier outputs a missing value... happened to me
                 score = weights[index] * 0.42
             entry_score += score
 
