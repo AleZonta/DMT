@@ -10,8 +10,8 @@ CLICK_COL = -3
 COMP_START_COL = 26
 COMP_END_COL = 50
 
-# srch_id, date_time, site_id, visitor_hist_starrating, visitor_hist_adr_usd, prop_id
-TO_BE_REMOVED = (0, 1, 2, 4, 5, 7)
+# srch_id, date_time, site_id, visitor_hist_starrating, visitor_hist_adr_usd
+TO_BE_REMOVED = (0, 1, 2, 4, 5)
 
 def rm_cols(lines, *cols):
     for line in lines:
