@@ -23,7 +23,7 @@ def combine_results(tests, confidences, clickcol, bookcol):
             search_results.append((test[PROP_ID_COL], float(confs[clickcol]) + 6*float(confs[bookcol])))
         except ValueError:
             search_results.append((test[PROP_ID_COL], 0.42))
-    search_results.sort(key=lambda result:result[1], reverse=True)
+    search_results.sort(key=lambda result: result[1], reverse=True)
     for result in search_results:
         yield (current_search, result[0])
 
