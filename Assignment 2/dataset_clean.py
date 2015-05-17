@@ -1,37 +1,61 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import collections
 import sys
 import csv
 
-POSITION_COL = 14
-BOOK_COL = -1
-CLICK_COL = -3
-COMP_START_COL = 26
-COMP_END_COL = 50
-
 # srch_id, date_time, site_id, visitor_hist_starrating, visitor_hist_adr_usd
-TO_BE_REMOVED = (0, 1, 2, 4, 5)
+#TO_BE_REMOVED = (0, 1, 2, 4, 5)
 
-def rm_cols(lines, *cols):
-    for line in lines:
-        yield [el for index, el in enumerate(line) if index not in cols]
+#TO_BE_REMOVED = ('srch_id', 'date_time', 'site_id', 'visitor_hist_starrating', 'visitor_hist_adr_usd', 'prop_id')
+TO_BE_REMOVED = ('srch_id', 'date_time', 'site_id', 'visitor_hist_starrating', 'visitor_hist_adr_usd', 'prop_id', 'prop_location_score1', 'prop_location_score2', 'prop_log_historical_price', 'srch_adults_count', 'srch_room_count', 'random_bool', 'price_usd', 'srch_query_affinity_score', 'orig_destination_distance')
 
-def compact_comp(lines):
-    for line in lines:
-        smaller = 0
-        for i in xrange(8):
-            if line[COMP_START_COL + i*3] != 'NULL' and line[COMP_START_COL + i*3 + 1] == '1':
-                smaller += 1
-        line[COMP_START_COL:COMP_END_COL] = [str(smaller)]
-        yield line
+# makes it a set
+def transform_row(head, line):
+    return collections.OrderedDict(zip(head, line))
 
-def compact_clickbooking(lines):
-    for line in lines:
-        clickscore = int(line[CLICK_COL]) + 5 * int(line[BOOK_COL])
-        del line[CLICK_COL]
-        line[BOOK_COL] = str(clickscore)
-        yield line
+def rm_cols(cols, line):
+    for col_name in cols:
+        del line[col_name]
+    return line
+
+def rm_these_cols(cols):
+    def f(line):
+        return rm_cols(cols, line)
+    return f
+
+def compact_comp(line):
+    is_head = line['comp1_rate'] == 'comp1_rate'
+    smaller = 0
+    for i in xrange(1, 9):
+        if line['comp%d_rate' % i] != 'NULL' and line['comp%d_inv' % i] in ('1', '+1'):
+            smaller += 1
+        del line['comp%d_rate' % i]
+        del line['comp%d_inv' % i]
+        del line['comp%d_rate_percent_diff' % i]
+    line['comp_rate'] = str(smaller) if not is_head else 'comp_rate'
+    return line
+
+
+def compact_clickbooking(line):
+    is_head = line['click_bool'] == 'click_bool'
+    if not is_head:
+        clickscore = int(line['click_bool']) + int(line['booking_bool'])
+    else:
+        clickscore = 'score'
+    del line['click_bool']
+    del line['booking_bool']
+    del line['position']
+    del line['gross_bookings_usd']
+    line['score'] = str(clickscore)
+    return line
+
+def transform_srch_children_count(line):
+    if line['srch_children_count'] == 'srch_children_count':
+        return line
+    line['srch_children_count'] = int(int(line['srch_children_count']) > 0)
+    return line
 
 infile = csv.reader(open(sys.argv[1]))
 try:
@@ -40,18 +64,22 @@ except IndexError:
     outfile = csv.writer(open('compressed.csv', 'w'))
 
 head = infile.next()
-new_head = head[:]
+rows = map(lambda x: transform_row(head, x), infile)
 
+filters = [compact_comp, transform_srch_children_count, rm_these_cols(TO_BE_REMOVED)]
 if 'position' in head:
-    del new_head[POSITION_COL]
-    del new_head[CLICK_COL]
-    new_head[BOOK_COL] = 'click_score'
-    new_rows = rm_cols(compact_clickbooking(compact_comp(rm_cols(infile, POSITION_COL))), *TO_BE_REMOVED)
-else:
-    new_rows = rm_cols(compact_comp(infile), *TO_BE_REMOVED)
+    filters.append(compact_clickbooking)
 
-new_head[COMP_START_COL:COMP_END_COL] = ['comp_rank']
-new_head = [el for index, el in enumerate(new_head) if index not in TO_BE_REMOVED]
+def apply_filters(row):
+    for fltr in filters:
+        row = fltr(row)
+    return row
+
+#import ipdb; ipdb.set_trace()
+new_rows = []
+new_head = apply_filters(transform_row(head, head)).values()
+for row in rows:
+    new_rows.append(apply_filters(row).values())
+
 outfile.writerow(new_head)
 outfile.writerows(new_rows)
-
